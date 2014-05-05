@@ -84,7 +84,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\KryptonEngine\KryptonEngine.csproj">
+    <ProjectReference Include="..\..\HG_KryptonEngine\KryptonEngine.csproj">
       <Project>{4beca7bb-c7c4-401e-a263-49b8bbba2cae}</Project>
       <Name>KryptonEngine</Name>
     </ProjectReference>
