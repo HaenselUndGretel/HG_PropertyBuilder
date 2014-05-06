@@ -30,7 +30,7 @@ namespace PropertyBuilder.GameContent.Scenes
   {
       #region Properties
 
-      protected InteractivObject interactivObject;
+      protected InteractiveObject interactivObject;
 
       protected CreateNewObject createForm;
       public static String NewTextureName;
@@ -70,7 +70,7 @@ namespace PropertyBuilder.GameContent.Scenes
       public PropertyScene(String pSceneName)
         : base(pSceneName)
       {
-        interactivObject = new InteractivObject();
+        interactivObject = new InteractiveObject();
         
       }
       #endregion
@@ -85,7 +85,7 @@ namespace PropertyBuilder.GameContent.Scenes
       public override void LoadContent()
       {
         font = FontManager.Instance.Add("font", @"font\font");
-        interactivObject = InteractivObjectDataManager.Instance.GetElementByString("Hansel");
+        interactivObject = InteractiveObjectDataManager.Instance.GetElementByString("Hansel");
         interactivObject.Position = new Vector2((EngineSettings.VirtualResWidth / 2 - interactivObject.Texture.Width / 2), (EngineSettings.VirtualResHeight / 2 - interactivObject.Texture.Height / 2));
         createForm = new CreateNewObject();
       }
@@ -303,11 +303,11 @@ namespace PropertyBuilder.GameContent.Scenes
         {
           if ((myStream = openFileDialog1.OpenFile()) != null)
           {
-            interactivObject = new InteractivObject();
-            XmlSerializer xml = new XmlSerializer(typeof(InteractivObject));
+            interactivObject = new InteractiveObject();
+            XmlSerializer xml = new XmlSerializer(typeof(InteractiveObject));
 
             TextReader reader = new StreamReader(myStream);
-            interactivObject = (InteractivObject)xml.Deserialize(myStream);
+            interactivObject = (InteractiveObject)xml.Deserialize(myStream);
             interactivObject.Texture = TextureManager.Instance.GetElementByString(interactivObject.TextureName);
             reader.Close();
             myStream.Close();
@@ -329,7 +329,7 @@ namespace PropertyBuilder.GameContent.Scenes
         {
           if ((myStream = saveFileDialog1.OpenFile()) != null)
           {
-            XmlSerializer xml = new XmlSerializer(typeof(InteractivObject));
+            XmlSerializer xml = new XmlSerializer(typeof(InteractiveObject));
 
             TextWriter writer = new StreamWriter(myStream);
             xml.Serialize(writer, interactivObject);
@@ -349,6 +349,7 @@ namespace PropertyBuilder.GameContent.Scenes
         interactivObject.ActionRectList.Clear();
         interactivObject.CollisionRectList.Clear();
         interactivObject.DrawZ = 0;
+        interactivObject.TextureName = NewTextureName;
         interactivObject.Texture = TextureManager.Instance.GetElementByString(interactivObject.TextureName);
       }
       #endregion
