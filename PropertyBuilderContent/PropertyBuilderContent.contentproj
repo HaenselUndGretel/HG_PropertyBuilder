@@ -37,11 +37,18 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="gfx\hansel_cutout.png">
-      <Name>hansel_cutout</Name>
+    <Compile Include="gfx\Hansel.png">
+      <Name>Hansel</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="iObj\Hansel.iObj">
+      <Name>Hansel</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
   <!--  To modify your build process, add your task inside one of the targets below and uncomment it. 

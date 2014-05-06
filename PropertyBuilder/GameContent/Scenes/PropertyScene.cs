@@ -2,16 +2,21 @@
 using KryptonEngine.Controls;
 using KryptonEngine.Manager;
 using KryptonEngine.SceneManagement;
+using KryptonEngine.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace PropertyBuilder.GameContent.Scenes
 {
-  enum RectangleArt 
+  public enum RectangleArt 
   {
     Action,
     Collision,
@@ -20,40 +25,39 @@ namespace PropertyBuilder.GameContent.Scenes
     Z,
     Delete
   }
-  class PropertyScene : Scene
+
+  public class PropertyScene : Scene
   {
       #region Properties
 
-    protected int mDrawZ = 0;
-    protected int mActionId = -1;
+      protected InteractivObject interactivObject;
 
-    protected List<Rectangle> mActionRectangle = new List<Rectangle>();
-    protected List<Rectangle> mCollisionRectangle = new List<Rectangle>();
+      protected CreateNewObject createForm;
+      public static String NewTextureName;
 
-    protected Vector2 mActionStartPos1 = Vector2.Zero;
-    protected Vector2 mActionStartPos2 = Vector2.Zero;
+      protected bool DrawActionRectangle = true;
+      protected bool DrawCollisionRectangle = true;
+      protected bool DrawPosition = true;
+      protected bool DrawZ = true;
+      protected bool IsDrawingRectangle = false;
 
-    protected bool DrawActionRectangle = true;
-    protected bool DrawCollisionRectangle = true;
-    protected bool DrawPosition = true;
-    protected bool DrawZ = true;
-    protected bool IsDrawingRectangle = false;
+      protected SpriteFont font;
 
-    protected SpriteFont font;
+      protected RectangleArt art = RectangleArt.Action;
 
-    protected Vector2 mRectangleSelectPos1 = Vector2.Zero;
-    protected Vector2 mRectangleSelectPos2 = Vector2.Zero;
+      protected Vector2 mRectanglePos1 = Vector2.Zero;
+      protected Vector2 mRectanglePos2 = Vector2.Zero;
 
-    protected RectangleArt art = RectangleArt.Action;
+      protected Rectangle tmpRectangle;
 
-    protected Vector2 mRectanglePos1 = Vector2.Zero;
-    protected Vector2 mRectanglePos2 = Vector2.Zero;
+      protected Vector2 mRectangleSelectPos2;
+      protected Vector2 mRectangleSelectPos1;
 
-    protected Texture2D mTexture;
-    protected Rectangle tmpRectangle;
+      protected bool isInCollision = false;
+      protected bool isInAction = false;
 
-    protected bool isInCollision = false;
-    protected bool isInAction = false;
+      protected KeyboardState mKsCurrent;
+      protected KeyboardState mKSLast;
 
       #endregion
 
@@ -66,6 +70,8 @@ namespace PropertyBuilder.GameContent.Scenes
       public PropertyScene(String pSceneName)
         : base(pSceneName)
       {
+        interactivObject = new InteractivObject();
+        
       }
       #endregion
 
@@ -79,11 +85,17 @@ namespace PropertyBuilder.GameContent.Scenes
       public override void LoadContent()
       {
         font = FontManager.Instance.Add("font", @"font\font");
-        mTexture = TextureManager.Instance.Add("Hansel", @"gfx\hansel_cutout");
+        interactivObject = InteractivObjectDataManager.Instance.GetElementByString("Hansel");
+        interactivObject.Position = new Vector2((EngineSettings.VirtualResWidth / 2 - interactivObject.Texture.Width / 2), (EngineSettings.VirtualResHeight / 2 - interactivObject.Texture.Height / 2));
+        createForm = new CreateNewObject();
       }
 
       public override void Update()
       {
+        mKSLast = mKsCurrent;
+        mKsCurrent = Keyboard.GetState();
+
+        UpdateKeyboardInput();
         UpdateActionWheel();
         UpdateMouseClick();
       }
@@ -96,26 +108,26 @@ namespace PropertyBuilder.GameContent.Scenes
 
         mSpriteBatch.Begin();
 
-        mSpriteBatch.Draw(mTexture, new Vector2((EngineSettings.VirtualResWidth / 2 - mTexture.Width / 2), (EngineSettings.VirtualResHeight / 2 - mTexture.Height / 2 )), Color.White);
+        interactivObject.Draw(mSpriteBatch);
+        //mSpriteBatch.Draw(mTexture, new Vector2((EngineSettings.VirtualResWidth / 2 - mTexture.Width / 2), (EngineSettings.VirtualResHeight / 2 - mTexture.Height / 2 )), Color.White);
 
         mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), tmpRectangle, Color.White);
 
         if(DrawActionRectangle)
-          foreach (Rectangle r in mActionRectangle)
+          foreach (Rectangle r in interactivObject.ActionRectList)
             mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), r, Color.Yellow * 0.5f);
 
         if(DrawCollisionRectangle)
-          foreach (Rectangle r in mCollisionRectangle)
+          foreach (Rectangle r in interactivObject.CollisionRectList)
             mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), r, Color.Green * 0.5f);
 
-        if(DrawPosition)
-        {
-          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), mActionStartPos1, new Rectangle((int)mActionStartPos1.X - 2, (int)mActionStartPos1.Y - 2, 5, 5), Color.Blue);
-          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), mActionStartPos2, new Rectangle((int)mActionStartPos2.X - 2, (int)mActionStartPos2.Y - 2, 5, 5), Color.Blue);
-        }
+        if(DrawPosition && interactivObject.ActionPosition1 != Vector2.Zero)
+          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), interactivObject.ActionPosition1, new Rectangle((int)interactivObject.ActionPosition1.X - 2, (int)interactivObject.ActionPosition1.Y - 2, 5, 5), Color.Blue);
+        if (DrawPosition && interactivObject.ActionPosition2 != Vector2.Zero)
+          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), interactivObject.ActionPosition2, new Rectangle((int)interactivObject.ActionPosition2.X - 2, (int)interactivObject.ActionPosition2.Y - 2, 5, 5), Color.Blue);
 
-        if(DrawZ)
-          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), new Vector2(0,mDrawZ),new Rectangle(0, mDrawZ, 1024,1), Color.Red);
+        if(DrawZ && interactivObject.DrawZ > 0)
+          mSpriteBatch.Draw(TextureManager.Instance.GetElementByString("pixel"), new Vector2(0, interactivObject.DrawZ), new Rectangle(0, interactivObject.DrawZ, 1024, 1), Color.Red);
         mSpriteBatch.End();
 
         DrawInfo();
@@ -165,7 +177,7 @@ namespace PropertyBuilder.GameContent.Scenes
             {
               if (tmpRectangle.Width > 0 
                 && tmpRectangle.Height > 0)
-                mActionRectangle.Add(tmpRectangle);
+                interactivObject.ActionRectList.Add(tmpRectangle);
               mRectangleSelectPos1 = Vector2.Zero;
               mRectangleSelectPos2 = Vector2.Zero;
               tmpRectangle = new Rectangle(0, 0, 0, 0);
@@ -177,7 +189,7 @@ namespace PropertyBuilder.GameContent.Scenes
             {
               if (tmpRectangle.Width > 0
                 && tmpRectangle.Height > 0)
-                mCollisionRectangle.Add(tmpRectangle);
+                interactivObject.CollisionRectList.Add(tmpRectangle);
               mRectangleSelectPos1 = Vector2.Zero;
               mRectangleSelectPos2 = Vector2.Zero;
               tmpRectangle = new Rectangle(0, 0, 0, 0);
@@ -185,21 +197,40 @@ namespace PropertyBuilder.GameContent.Scenes
             break;
           case RectangleArt.StartPos1:
             if (MouseHelper.Instance.IsClickedLeft)
-              mActionStartPos1 = MouseHelper.Position;
+              interactivObject.ActionPosition1 = MouseHelper.Position;
             break;
           case RectangleArt.StartPos2:
             if (MouseHelper.Instance.IsClickedLeft)
-              mActionStartPos2 = MouseHelper.Position;
+              interactivObject.ActionPosition2 = MouseHelper.Position;
             break;
           case RectangleArt.Z:
             if (MouseHelper.Instance.IsClickedLeft)
-              mDrawZ = (int)MouseHelper.Position.Y;
+              interactivObject.DrawZ = (int)MouseHelper.Position.Y;
             break;
           case RectangleArt.Delete:
             if (MouseHelper.Instance.IsClickedLeft)
-              DeleteRectangle();
+              Delete();
             break;
         }
+      }
+
+      private void UpdateKeyboardInput()
+      {
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F1) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F1))
+            DrawActionRectangle = !DrawActionRectangle;
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F2) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F2))
+            DrawCollisionRectangle = !DrawCollisionRectangle;
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F3) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F3))
+            DrawPosition = !DrawPosition;
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F4) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F4))
+            DrawZ = !DrawZ;
+
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F5))
+          CreateNewInteractivObject();
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F6) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F6))
+          LoadInteractivObject();
+        if (mKSLast.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F7) && mKsCurrent.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.F7))
+          SaveInteractivObject();
       }
 
       private void CreateRectangle()
@@ -215,7 +246,6 @@ namespace PropertyBuilder.GameContent.Scenes
         {
           mRectangleSelectPos2 = new Vector2(MouseHelper.Position.X, MouseHelper.Position.Y);
           tmpRectangle = new Rectangle((int)mRectangleSelectPos1.X, (int)mRectangleSelectPos1.Y, (int)(mRectangleSelectPos2.X - mRectangleSelectPos1.X), (int)(mRectangleSelectPos2.Y - mRectangleSelectPos1.Y));
-
         }
 
         if (IsDrawingRectangle && MouseHelper.Instance.IsReleasedLeft)
@@ -224,29 +254,102 @@ namespace PropertyBuilder.GameContent.Scenes
         }
       }
       
-      private void DeleteRectangle()
+      private void Delete()
       {
-        bool somethingDeleted = false;
-        for(int i = 0; i < mActionRectangle.Count; i++)
+        if (DrawZ)
+          if (new Rectangle(0, interactivObject.DrawZ, 1024, 1).Contains(MouseHelper.PositionPoint))
+            interactivObject.DrawZ = 0;
+
+        if(DrawPosition)
         {
-          if(mActionRectangle[i].Contains(MouseHelper.PositionPoint))
-          {
-            somethingDeleted = true;
-            mActionRectangle.RemoveAt(i);
-            return;
-          }
+          if (new Rectangle((int)interactivObject.ActionPosition1.X - 2, (int)interactivObject.ActionPosition1.Y - 2, 5, 5).Contains(MouseHelper.PositionPoint))
+            interactivObject.ActionPosition1 = Vector2.Zero;
+          if (new Rectangle((int)interactivObject.ActionPosition2.X - 2, (int)interactivObject.ActionPosition2.Y - 2, 5, 5).Contains(MouseHelper.PositionPoint))
+            interactivObject.ActionPosition2 = Vector2.Zero;
         }
 
-        for (int i = 0; i < mCollisionRectangle.Count; i++)
-        {
-          if (mCollisionRectangle[i].Contains(MouseHelper.PositionPoint))
+        if(DrawActionRectangle)
+          for (int i = 0; i < interactivObject.ActionRectList.Count; i++)
           {
-            somethingDeleted = true;
-            mCollisionRectangle.RemoveAt(i);
-            return;
+            if (interactivObject.ActionRectList[i].Contains(MouseHelper.PositionPoint))
+            {
+              interactivObject.ActionRectList.RemoveAt(i);
+              return;
+            }
+          }
+
+        if(DrawCollisionRectangle)
+          for (int i = 0; i < interactivObject.CollisionRectList.Count; i++)
+          {
+            if (interactivObject.CollisionRectList[i].Contains(MouseHelper.PositionPoint))
+            {
+              interactivObject.CollisionRectList.RemoveAt(i);
+              return;
+            }
+          }
+      }
+
+      public void LoadInteractivObject()
+      {
+        Stream myStream;
+        OpenFileDialog openFileDialog1 = new OpenFileDialog();
+
+        openFileDialog1.InitialDirectory = Environment.CurrentDirectory + @"\Content\iObj\";
+        openFileDialog1.Filter = "InteractivObject (*.iObj)|*.iObj";
+        openFileDialog1.FilterIndex = 2;
+        openFileDialog1.RestoreDirectory = true;
+
+        if (openFileDialog1.ShowDialog() == DialogResult.OK)
+        {
+          if ((myStream = openFileDialog1.OpenFile()) != null)
+          {
+            interactivObject = new InteractivObject();
+            XmlSerializer xml = new XmlSerializer(typeof(InteractivObject));
+
+            TextReader reader = new StreamReader(myStream);
+            interactivObject = (InteractivObject)xml.Deserialize(myStream);
+            interactivObject.Texture = TextureManager.Instance.GetElementByString(interactivObject.TextureName);
+            reader.Close();
+            myStream.Close();
           }
         }
+      }
 
+      public void SaveInteractivObject()
+      {
+        Stream myStream;
+        SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+
+        saveFileDialog1.InitialDirectory = Environment.CurrentDirectory + @"\Content\iObj\";
+        saveFileDialog1.Filter = "InteractivObject (*.iObj)|*.iObj";
+        saveFileDialog1.FilterIndex = 2;
+        saveFileDialog1.RestoreDirectory = true;
+
+        if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+        {
+          if ((myStream = saveFileDialog1.OpenFile()) != null)
+          {
+            XmlSerializer xml = new XmlSerializer(typeof(InteractivObject));
+
+            TextWriter writer = new StreamWriter(myStream);
+            xml.Serialize(writer, interactivObject);
+            writer.Close();
+            myStream.Close();
+          }
+        }
+      }
+
+      public void CreateNewInteractivObject()
+      {
+        createForm.ShowDialog();
+
+        interactivObject.ActionId = 0;
+        interactivObject.ActionPosition1 = Vector2.Zero;
+        interactivObject.ActionPosition2 = Vector2.Zero;
+        interactivObject.ActionRectList.Clear();
+        interactivObject.CollisionRectList.Clear();
+        interactivObject.DrawZ = 0;
+        interactivObject.Texture = TextureManager.Instance.GetElementByString(interactivObject.TextureName);
       }
       #endregion
     }
