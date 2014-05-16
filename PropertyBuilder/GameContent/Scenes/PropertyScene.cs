@@ -177,7 +177,7 @@ namespace PropertyBuilder.GameContent.Scenes
             if(MouseHelper.Instance.IsReleasedLeft && !IsDrawingRectangle)
             {
               if (tmpRectangle.Width > 0 
-                && tmpRectangle.Height > 0)
+                  && tmpRectangle.Height > 0)
                 interactivObject.ActionRectList.Add(tmpRectangle);
               mRectangleSelectPos1 = Vector2.Zero;
               mRectangleSelectPos2 = Vector2.Zero;
@@ -188,8 +188,8 @@ namespace PropertyBuilder.GameContent.Scenes
             CreateRectangle();
             if(MouseHelper.Instance.IsReleasedLeft && !IsDrawingRectangle)
             {
-              if (tmpRectangle.Width > 0
-                && tmpRectangle.Height > 0)
+                if (tmpRectangle.Width > 0
+                    && tmpRectangle.Height > 0)
                 interactivObject.CollisionRectList.Add(tmpRectangle);
               mRectangleSelectPos1 = Vector2.Zero;
               mRectangleSelectPos2 = Vector2.Zero;
@@ -339,11 +339,13 @@ namespace PropertyBuilder.GameContent.Scenes
 
 				io.Position = Vector2.Zero;
 
+                Vector2 ScreenCenter = new Vector2(EngineSettings.VirtualResWidth / 2, EngineSettings.VirtualResHeight / 2);// -new Vector2(io.Texture.Width / 2, io.Texture.Height / 2);
+
 			  for(int i = 0; i < interactivObject.ActionRectList.Count ;i++)
 			  {
 				  io.ActionRectList.Add(new Rectangle
-					  (interactivObject.ActionRectList[i].X - EngineSettings.VirtualResWidth / 2 - interactivObject.ActionRectList[i].Width / 2,
-					   interactivObject.ActionRectList[i].Y - EngineSettings.VirtualResHeight / 2 - interactivObject.ActionRectList[i].Height / 2,
+                      (interactivObject.ActionRectList[i].X - (int)ScreenCenter.X,
+                       interactivObject.ActionRectList[i].Y - (int)ScreenCenter.Y,
 					   interactivObject.ActionRectList[i].Width,
 					   interactivObject.ActionRectList[i].Height));
 			  }
@@ -351,8 +353,8 @@ namespace PropertyBuilder.GameContent.Scenes
 			  for (int i = 0; i < interactivObject.CollisionRectList.Count; i++)
 			  {
 				  io.CollisionRectList.Add(new Rectangle
-					  (interactivObject.CollisionRectList[i].X - EngineSettings.VirtualResWidth / 2 - interactivObject.CollisionRectList[i].Width / 2,
-					   interactivObject.CollisionRectList[i].Y - EngineSettings.VirtualResHeight / 2 - interactivObject.CollisionRectList[i].Height / 2,
+                      (interactivObject.CollisionRectList[i].X - (int)ScreenCenter.X,
+                       interactivObject.CollisionRectList[i].Y - (int)ScreenCenter.Y,
 					   interactivObject.CollisionRectList[i].Width,
 					   interactivObject.CollisionRectList[i].Height));
 			  }
@@ -363,10 +365,10 @@ namespace PropertyBuilder.GameContent.Scenes
 				  io.ActionPosition2 = interactivObject.ActionPosition2;
 
 			  if (interactivObject.DrawZ != 0)
-				  io.DrawZ = interactivObject.DrawZ - EngineSettings.VirtualResHeight / 2;
+				  io.DrawZ = interactivObject.DrawZ - (int)ScreenCenter.Y;
 
 				TextWriter writer = new StreamWriter(myStream);
-				xml.Serialize(writer, interactivObject);
+				xml.Serialize(writer, io);
 				writer.Close();
 				myStream.Close();
           }
