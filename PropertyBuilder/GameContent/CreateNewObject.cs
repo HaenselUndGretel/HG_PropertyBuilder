@@ -18,7 +18,7 @@ namespace PropertyBuilder.GameContent
     public CreateNewObject()
     {
       InitializeComponent();
-      Dictionary<String, Texture2D> images = TextureManager.Instance.GetAllEntities();
+	  Dictionary<String, Texture2D> images = TextureManager.Instance.GetAllGameEntities();
 
       foreach (String s in images.Keys)
         comboBox1.Items.Add(s);

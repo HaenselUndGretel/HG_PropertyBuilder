@@ -84,9 +84,10 @@ namespace PropertyBuilder.GameContent.Scenes
 
       public override void LoadContent()
       {
-        font = FontManager.Instance.Add("font", @"font\font");
-        interactivObject = InteractiveObjectDataManager.Instance.GetElementByString("Hansel");
-        interactivObject.Position = new Vector2((EngineSettings.VirtualResWidth / 2 - interactivObject.Texture.Width / 2), (EngineSettings.VirtualResHeight / 2 - interactivObject.Texture.Height / 2));
+		  font = FontManager.Instance.GetElementByString("font");
+		  interactivObject = new InteractiveObject();
+        //interactivObject = InteractiveObjectDataManager.Instance.GetElementByString("Hansel");
+        //interactivObject.Position = new Vector2((EngineSettings.VirtualResWidth / 2 - interactivObject.Texture.Width / 2), (EngineSettings.VirtualResHeight / 2 - interactivObject.Texture.Height / 2));
         createForm = new CreateNewObject();
       }
 
@@ -324,17 +325,50 @@ namespace PropertyBuilder.GameContent.Scenes
         saveFileDialog1.Filter = "InteractivObject (*.iObj)|*.iObj";
         saveFileDialog1.FilterIndex = 2;
         saveFileDialog1.RestoreDirectory = true;
+		saveFileDialog1.FileName = interactivObject.TextureName + ".iObj";
 
         if (saveFileDialog1.ShowDialog() == DialogResult.OK)
         {
           if ((myStream = saveFileDialog1.OpenFile()) != null)
           {
-            XmlSerializer xml = new XmlSerializer(typeof(InteractiveObject));
+				XmlSerializer xml = new XmlSerializer(typeof(InteractiveObject));
+				InteractiveObject io = new InteractiveObject();
 
-            TextWriter writer = new StreamWriter(myStream);
-            xml.Serialize(writer, interactivObject);
-            writer.Close();
-            myStream.Close();
+				io.Texture = interactivObject.Texture;
+				io.TextureName = interactivObject.TextureName;
+
+				io.Position = Vector2.Zero;
+
+			  for(int i = 0; i < interactivObject.ActionRectList.Count ;i++)
+			  {
+				  io.ActionRectList.Add(new Rectangle
+					  (interactivObject.ActionRectList[i].X - EngineSettings.VirtualResWidth / 2 - interactivObject.ActionRectList[i].Width / 2,
+					   interactivObject.ActionRectList[i].Y - EngineSettings.VirtualResHeight / 2 - interactivObject.ActionRectList[i].Height / 2,
+					   interactivObject.ActionRectList[i].Width,
+					   interactivObject.ActionRectList[i].Height));
+			  }
+
+			  for (int i = 0; i < interactivObject.CollisionRectList.Count; i++)
+			  {
+				  io.CollisionRectList.Add(new Rectangle
+					  (interactivObject.CollisionRectList[i].X - EngineSettings.VirtualResWidth / 2 - interactivObject.CollisionRectList[i].Width / 2,
+					   interactivObject.CollisionRectList[i].Y - EngineSettings.VirtualResHeight / 2 - interactivObject.CollisionRectList[i].Height / 2,
+					   interactivObject.CollisionRectList[i].Width,
+					   interactivObject.CollisionRectList[i].Height));
+			  }
+
+			  if (interactivObject.ActionPosition1 != Vector2.Zero)
+				  io.ActionPosition1 = interactivObject.ActionPosition1;
+			  if (interactivObject.ActionPosition2 != Vector2.Zero)
+				  io.ActionPosition2 = interactivObject.ActionPosition2;
+
+			  if (interactivObject.DrawZ != 0)
+				  io.DrawZ = interactivObject.DrawZ - EngineSettings.VirtualResHeight / 2;
+
+				TextWriter writer = new StreamWriter(myStream);
+				xml.Serialize(writer, interactivObject);
+				writer.Close();
+				myStream.Close();
           }
         }
       }
@@ -351,6 +385,7 @@ namespace PropertyBuilder.GameContent.Scenes
         interactivObject.DrawZ = 0;
         interactivObject.TextureName = NewTextureName;
         interactivObject.Texture = TextureManager.Instance.GetElementByString(interactivObject.TextureName);
+		interactivObject.Position = new Vector2(EngineSettings.VirtualResWidth / 2 - interactivObject.Texture.Width/2, EngineSettings.VirtualResHeight / 2 - interactivObject.Texture.Height/2);
       }
       #endregion
     }

@@ -23,8 +23,8 @@ namespace PropertyBuilder
     public Game1()
     {
       EngineSettings.OnWindows = true;
-      EngineSettings.SetDisplayResolution(800, 800);
-      EngineSettings.SetResolution(1024, 1024);
+      EngineSettings.SetDisplayResolution(1024, 1024);
+	  EngineSettings.SetResolution(1024, 1024);
 
       this.IsMouseVisible = true;
     }
@@ -37,8 +37,6 @@ namespace PropertyBuilder
     /// </summary>
     protected override void Initialize()
     {
-      SceneManager.Instance.AddScene(new PropertyScene("Start"));
-      SceneManager.Instance.SetStartSceneTo("Start");
       base.Initialize();
     }
 
@@ -48,6 +46,8 @@ namespace PropertyBuilder
     /// </summary>
     protected override void LoadContent()
     {
+      SceneManager.Instance.AddScene(new PropertyScene("Start"));
+      SceneManager.Instance.SetStartSceneTo("Start");
       base.LoadContent();
 
       SceneManager.Instance.GetScene("Start").Background = "pixel";
