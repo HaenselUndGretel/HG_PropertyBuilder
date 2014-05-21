@@ -360,9 +360,9 @@ namespace PropertyBuilder.GameContent.Scenes
 			  }
 
 			  if (interactivObject.ActionPosition1 != Vector2.Zero)
-				  io.ActionPosition1 = interactivObject.ActionPosition1;
+				  io.ActionPosition1 = interactivObject.ActionPosition1 - ScreenCenter;
 			  if (interactivObject.ActionPosition2 != Vector2.Zero)
-				  io.ActionPosition2 = interactivObject.ActionPosition2;
+				  io.ActionPosition2 = interactivObject.ActionPosition2 - ScreenCenter;
 
 			  if (interactivObject.DrawZ != 0)
 				  io.DrawZ = interactivObject.DrawZ - (int)ScreenCenter.Y;
