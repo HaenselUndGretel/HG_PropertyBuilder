@@ -344,25 +344,25 @@ namespace PropertyBuilder.GameContent.Scenes
 			  for(int i = 0; i < interactivObject.ActionRectList.Count ;i++)
 			  {
 				  io.ActionRectList.Add(new Rectangle
-                      (interactivObject.ActionRectList[i].X - (int)ScreenCenter.X,
-                       interactivObject.ActionRectList[i].Y - (int)ScreenCenter.Y,
-					   interactivObject.ActionRectList[i].Width,
-					   interactivObject.ActionRectList[i].Height));
+                      ((int)interactivObject.ActionRectList[i].X - (int)ScreenCenter.X,
+					   (int)interactivObject.ActionRectList[i].Y - (int)ScreenCenter.Y,
+					   (int)interactivObject.ActionRectList[i].Width,
+					   (int)interactivObject.ActionRectList[i].Height));
 			  }
 
 			  for (int i = 0; i < interactivObject.CollisionRectList.Count; i++)
 			  {
 				  io.CollisionRectList.Add(new Rectangle
-                      (interactivObject.CollisionRectList[i].X - (int)ScreenCenter.X,
-                       interactivObject.CollisionRectList[i].Y - (int)ScreenCenter.Y,
-					   interactivObject.CollisionRectList[i].Width,
-					   interactivObject.CollisionRectList[i].Height));
+					  ((int)interactivObject.CollisionRectList[i].X - (int)ScreenCenter.X,
+					   (int)interactivObject.CollisionRectList[i].Y - (int)ScreenCenter.Y,
+					   (int)interactivObject.CollisionRectList[i].Width,
+					   (int)interactivObject.CollisionRectList[i].Height));
 			  }
 
 			  if (interactivObject.ActionPosition1 != Vector2.Zero)
-				  io.ActionPosition1 = interactivObject.ActionPosition1 - ScreenCenter;
+				  io.ActionPosition1 = new Vector2((int)(interactivObject.ActionPosition1.X - ScreenCenter.X), (int)(interactivObject.ActionPosition1.Y - ScreenCenter.Y));
 			  if (interactivObject.ActionPosition2 != Vector2.Zero)
-				  io.ActionPosition2 = interactivObject.ActionPosition2 - ScreenCenter;
+				  io.ActionPosition2 = new Vector2((int)(interactivObject.ActionPosition2.X - ScreenCenter.X), (int)(interactivObject.ActionPosition2.Y - ScreenCenter.Y));
 
 			  if (interactivObject.DrawZ != 0)
 				  io.DrawZ = interactivObject.DrawZ - (int)ScreenCenter.Y;
